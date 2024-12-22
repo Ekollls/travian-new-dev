@@ -1,2 +1,180 @@
 # travian.com
  core php based MMO travian game
+Step 1: Update Your System
+Ensure your system is up-to-date by running:
+sudo yum update -y
+
+---
+Step 2: Install EPEL and REMI Repositories
+To install PHP 7.4 and other required packages, enable the EPEL and REMI repositories:
+sudo yum install -y epel-release
+sudo yum install -y https://rpms.remirepo.net/enterprise/remi-release-7.rpm
+
+---
+
+Step 3: Enable PHP 7.4 from REMI Repository
+Enable the PHP 7.4 module from the REMI repository:
+sudo yum-config-manager --enable remi-php74
+
+---
+Step 4: Install PHP 7.4 and Extensions
+Install PHP 7.4 along with the necessary extensions for Nginx:
+sudo yum install -y php php-mysqlnd php-mbstring php-xml php-curl php-zip php-gd php-devel php-redis
+
+---
+
+Step 5: Install Nginx
+Install Nginx:
+sudo yum install -y nginx
+
+---
+
+Step 6: Install MySQL 8.0
+Install MySQL 8.0 Community Edition:
+sudo yum install -y https://dev.mysql.com/get/mysql80-community-release-el7-1.noarch.rpm
+sudo curl -o /etc/pki/rpm-gpg/RPM-GPG-KEY-mysql-2023 https://repo.mysql.com/RPM-GPG-KEY-mysql-2023
+sudo rpm --import /etc/pki/rpm-gpg/RPM-GPG-KEY-mysql-2023
+sudo yum install -y mysql-community-server
+
+---
+Step 7: Start and Enable Services
+Start and enable MySQL, Nginx, and PHP-FPM services to run on boot:
+sudo systemctl start mysqld
+sudo systemctl enable mysqld
+sudo systemctl start nginx
+sudo systemctl enable nginx
+sudo systemctl start php-fpm
+sudo systemctl enable php-fpm
+
+---
+
+Step 8: Configure Nginx to Use PHP
+To configure Nginx with PHP:
+Edit the Nginx configuration file:
+sudo nano /etc/nginx/conf.d/default.conf
+Add the following inside the server block:
+server {
+listen 80;
+server_name localhost;
+root /usr/share/nginx/html;
+index index.php index.html index.htm;
+location / {
+try_files $uri $uri/ =404;
+}
+location ~ .php$ {
+fastcgi_pass 127.0.0.1:9000;
+fastcgi_index index.php;
+fastcgi_param SCRIPT_FILENAME $document_root$fastcgi_script_name;
+include fastcgi_params;
+}
+}
+Test and reload Nginx:
+sudo nginx -t
+sudo systemctl reload nginx
+
+---
+
+Step 9: Secure MySQL Installation
+Run the MySQL secure installation wizard:
+sudo mysql_secure_installation
+
+---
+
+Step 10: Verify Installation
+Create a PHP info file to test PHP functionality:
+sudo nano /usr/share/nginx/html/info.php
+Add the following content:
+<?php
+phpinfo();
+?>
+Open your browser and navigate to http://<your-server-ip>/info.php. You should see the PHP info page.
+Check service statuses:
+sudo systemctl status nginx
+sudo systemctl status php-fpm
+sudo systemctl status mysqld
+Step 1: Enable MySQL Passwordless Login
+Create a .my.cnf configuration file in the home directory of the user who will access MySQL without a password (e.g., root).
+Edit or create the file:
+sudo nano ~/.my.cnf
+Add the following content, replacing root with the correct username:[client]
+user=root
+password=<your_root_password>
+Save and close the file.
+Set the file permissions to restrict access:
+chmod 600 ~/.my.cnf
+Test the passwordless login by running:
+mysql
+
+Step 2: Add a New MySQL User
+Log in to MySQL:
+mysql
+Create a user named travian with a strong password:
+CREATE USER 'travian'@'localhost' IDENTIFIED BY 'your_strong_password';
+Grant necessary permissions to the travian user:
+GRANT ALL PRIVILEGES ON . TO 'travian'@'localhost' WITH GRANT OPTION;
+Reload the privilege tables to apply the changes:
+FLUSH PRIVILEGES;
+Exit MySQL:
+EXIT;
+
+Step 3: Test the New User
+Log in using the travian user:
+mysql -u travian -p
+Enter the password for the travian user to confirm successful login.
+Step 1: Add the User travian to CentOS 7
+Create the travian user:
+sudo adduser travian
+Set a password for the travian user:
+sudo passwd travian
+
+Step 2: Grant sudo Privileges with NOPASSWD
+Edit the sudoers file:
+sudo visudo
+Add the following line at the end of the file to grant travian passwordless sudo access:
+travian ALL=(ALL) NOPASSWD:ALL
+Save and exit the editor.
+
+Step 3: Test the New User and Permissions
+Switch to the travian user:
+su - travian
+Test a sudo command without a password prompt, for example:
+sudo whoami
+If configured correctly, the output will be:
+root
+Guide to Install Travian T4.6 on CentOS 7
+Follow these steps to clone the Travian T4.6 repository, set up the necessary permissions, and install the script.
+
+---
+
+Step 1: Clone the Repository
+Clone the Travian T4.6 repository from GitHub:
+git clone https://github.com/advocaite/TravianT4.6
+
+---
+
+Step 2: Move the Repository
+Rename and move the repository to the desired location:
+mv -R TravianT4.6 travian
+
+---
+
+Step 3: Set Permissions
+Change the ownership of the /travian directory to the travian user:
+chown travian:travian /travian
+
+---
+
+Step 4: Change to the /travian Directory
+Navigate to the /travian directory:
+cd /travian
+
+---
+
+Step 5: Set Permissions for sync.sh
+Give execute permissions to the sync.sh script:
+chmod o+x Manager/sync.sh
+
+---
+
+Step 6: Run the Installation Script
+Execute the sync.sh installation script:./Manager/sync.sh --install
